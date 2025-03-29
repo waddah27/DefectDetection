@@ -7,16 +7,33 @@ class Model:
         # Load model
         self.model = YOLO(os.path.join(MODEL_WEIGHTS, model_name)) # Small version
 
-    def inference(self, img):
-        return self.model(img)
+        self.ret = None
 
-    def show(self, img):
-        self.inference(img)[0].show()
+    def inference(self, img):
+        self.ret = self.model(img)
+
+    @property
+    def get_predicted_objects_names(self):
+        self._predicted_objects_names = set()
+        if self.ret is None: return set()
+        # return {self.ret[0].names[int(cls) for cls in self.ret[0].boxes.cls}
+        for cls in self.ret[0].boxes.cls:
+            cls = int(cls)
+            self._predicted_objects_names.add(self.ret[0].names[int(cls)])
+        return self._predicted_objects_names
+
+    def show(self):
+        self.ret[0].show()
+
 
 
 
 if __name__=='__main__':
     model = Model(model_name)
-    img_path = os.path.join(DATA_DIR, "2025-03-13 14.13.41.jpg")
-    ret = model.inference(img_path)
+    img_path = os.path.join(DATA_DIR, "woman-riding-bike-with-cat-basket_1316799-24317.jpg")
+    model.inference(img_path)
+    # print(model.ret[0].boxes.cls)
+    # print(model.ret[0].names)
+    print(model.get_predicted_objects_names)
+    print(model.ret[0].boxes.data)
     model.show(img_path)
