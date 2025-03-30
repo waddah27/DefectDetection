@@ -13,27 +13,33 @@ class Model:
 
         self._ret = None
 
+    def init_dataDict(self):
+        dataDict = {}
+        dataDict[DataCols.x1] = list()
+        dataDict[DataCols.y1] = list()
+        dataDict[DataCols.x2] = list()
+        dataDict[DataCols.y2] = list()
+        dataDict[DataCols.cls] = list()
+        dataDict[DataCols.conf] = list()
+        dataDict[DataCols.name] = list()
+        return dataDict
     def inference(self, img):
         self._ret = self.model(img)
 
     @property
     def dataFrame(self):
-        data_dict = {}
-        data_dict[DataCols.x1] = list()
-        data_dict[DataCols.y1] = list()
-        data_dict[DataCols.x2] = list()
-        data_dict[DataCols.y2] = list()
-        data_dict[DataCols.cls] = list()
-        data_dict[DataCols.conf] = list()
-        for box in self.get_data:
+        dataDict = self.init_dataDict()
+        for name, box in zip(self.get_cls_names, self.get_data):
             x1,y1,x2,y2,p,c = box
-            data_dict[DataCols.x1].append(x1)
-            data_dict[DataCols.y1].append(y1)
-            data_dict[DataCols.x2].append(x2)
-            data_dict[DataCols.y2].append(y2)
-            data_dict[DataCols.cls].append(c)
-            data_dict[DataCols.conf].append(p)
-        return data_dict
+            dataDict[DataCols.x1].append(x1)
+            dataDict[DataCols.y1].append(y1)
+            dataDict[DataCols.x2].append(x2)
+            dataDict[DataCols.y2].append(y2)
+            dataDict[DataCols.cls].append(c)
+            dataDict[DataCols.conf].append(p)
+            dataDict[DataCols.name].append(name)
+
+        return pd.DataFrame(dataDict)
 
     @property
     def ret(self):
@@ -42,7 +48,7 @@ class Model:
         return None
 
     @property
-    def get_predicted_objects_names(self):
+    def get_cls_names(self):
         if self._ret is None: set()
         return {self._ret[0].names[int(cls)] for cls in self.ret.boxes.cls}
 
@@ -53,11 +59,11 @@ class Model:
     @property
     def localize(self):
         # ids = list[map(lambda x:[y[-1] for y in x], self.ret.boxes.data)]
-        return {k:v for k,v in zip(self.get_predicted_objects_names, self.get_data)}
+        return {k:v for k,v in zip(self.get_cls_names, self.get_data)}
 
     @property
     def get_report(self):
-        return pd.DataFrame(self.localize)
+        self.dataFrame.to_csv(os.path.join(REPORT_DIR, 'report.csv'))
 
     def show(self):
         self._ret[0].show()
@@ -71,10 +77,10 @@ if __name__=='__main__':
     model.inference(img_path)
     # print(model.ret[0].boxes.cls)
     # print(model.ret[0].names)
-    print(model.get_predicted_objects_names)
+    print(model.get_cls_names)
     # print(model.ret[0].boxes.data)
     print(model.get_data)
     print(model.localize)
-    print(model.get_report)
     print(model.dataFrame)
-    model.show(img_path)
+    model.get_report
+    # model.show(img_path)

@@ -7,6 +7,7 @@ class StrEnum(Enum):
 
 ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 DATA_DIR = os.path.join(ROOT_DIR, "data")
+REPORT_DIR = os.path.join(ROOT_DIR, "report")
 MODEL_WEIGHTS = os.path.join(ROOT_DIR, 'weights')
 
 class DataCols(StrEnum):
@@ -16,6 +17,7 @@ class DataCols(StrEnum):
     y2 = auto()
     conf = auto()
     cls = auto()
+    name = auto()
 
     def __str__(self):
         return self._name_
