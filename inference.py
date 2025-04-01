@@ -1,15 +1,17 @@
+from gc import collect
 import numpy as np
 import pandas as pd
+import tensorrt as trt
 from consts import *
 from ultralytics import YOLO
 
-model_name = ModelBackbones.yolov10s
+model_name = ModelBackbones.yolo11n
 print(DataCols.cls)
 print(type(model_name))
 class Model:
     def __init__(self, model_name):
         # Load model
-        self.model = YOLO(os.path.join(MODEL_WEIGHTS, str(model_name))) # Small version
+        self.model = YOLO(os.path.join(MODEL_WEIGHTS, str(model_name))).to(DEVICE) # Small version
 
         self._ret = None
 
@@ -23,8 +25,16 @@ class Model:
         dataDict[DataCols.conf] = list()
         dataDict[DataCols.name] = list()
         return dataDict
+
     def inference(self, img):
+        self.model = YOLO(os.path.join(MODEL_WEIGHTS, str(model_name))).to(DEVICE) # Small version
         self._ret = self.model(img)
+        
+
+    def to_tensorRT(self):
+        if self.model:
+            self.model.export(format="engine", device=DEVICE)
+            
 
     @property
     def dataFrame(self):
@@ -65,6 +75,12 @@ class Model:
     def get_report(self):
         self.dataFrame.to_csv(os.path.join(REPORT_DIR, 'report.csv'))
 
+    def free(self):
+        self._ret = None
+        self.model = None
+        collect()
+        torch.cuda.empty_cache()
+
     def show(self):
         self._ret[0].show()
 
@@ -73,8 +89,11 @@ class Model:
 
 if __name__=='__main__':
     model = Model(model_name)
+    
     img_path = os.path.join(DATA_DIR, "woman-riding-bike-with-cat-basket_1316799-24317.jpg")
+
     model.inference(img_path)
+    model.to_tensorRT()
     # print(model.ret[0].boxes.cls)
     # print(model.ret[0].names)
     print(model.get_cls_names)
@@ -83,4 +102,6 @@ if __name__=='__main__':
     print(model.localize)
     print(model.dataFrame)
     model.get_report
+
+    model.free()
     # model.show(img_path)

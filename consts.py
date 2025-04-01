@@ -1,4 +1,5 @@
 import os
+import torch
 from enum import Enum, auto
 
 class StrEnum(Enum):
@@ -9,7 +10,7 @@ ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
 DATA_DIR = os.path.join(ROOT_DIR, "data")
 REPORT_DIR = os.path.join(ROOT_DIR, "report")
 MODEL_WEIGHTS = os.path.join(ROOT_DIR, 'weights')
-
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class DataCols(StrEnum):
     x1 = auto()
     y1 = auto()
@@ -24,6 +25,7 @@ class DataCols(StrEnum):
 
 class ModelBackbones(StrEnum):
     yolov10s = auto() #"yolov10s.pt"
+    yolo11n = auto()
 
     def __str__(self):
         return self._name_+'.pt'
